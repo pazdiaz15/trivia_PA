@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                // Instala las dependencias listadas en requirements.txt
+                sh 'pip install pandas'
+            }
+        }
+        stage('Generate Documentation') {
+            steps {
+                // Genera la documentación con pydoc y la guarda en el directorio docs
+                sh 'mkdir -p docs'
+                sh 'pydoc -w src' // Esto generará los archivos de documentación HTML en el directorio actual
+                sh 'mv *.html docs/' // Mueve los archivos HTML generados a la carpeta docs
+            }
+        }
+        stage('Archive Documentation') {
+            steps {
+                // Archiva los archivos de documentación generados para su consulta en Jenkins
+                archiveArtifacts artifacts: 'docs/*.html', allowEmptyArchive: true
+            }
+        }
+    }
+    post {
+        success {
+            echo 'Documentación generada y archivada con éxito.'
+        }
+        failure {
+            echo 'Error al generar o archivar la documentación.'
+        }
+    }
+}
